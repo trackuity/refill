@@ -1,6 +1,9 @@
 from __future__ import annotations
 from typing import Dict, List, Union, TYPE_CHECKING
 from typing_extensions import Protocol
+from dataclasses import asdict, dataclass
+
+import json
 
 from pyparsing import Word, alphas, alphanums
 
@@ -80,3 +83,25 @@ def apply_spec(data: JSONObject, spec: JSONObject) -> JSONObject:
         else:
             result[key] = apply_spec(data, value)
     return result
+
+
+@dataclass
+class Spec:
+    variables: Dict[str, Selector]
+
+    @classmethod
+    def from_dict(cls, json_dict: JSONObject) -> Spec:
+        return cls(**json_dict)
+
+    def to_dict(self) -> JSONObject:
+        return asdict(self)
+
+    @classmethod
+    def from_json(cls, json_str: str) -> Spec:
+        return cls.from_dict(json.loads(json_str))
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict())
+
+    def apply(self, data: JSONObject) -> JSONObject:
+        return apply_spec(data, self.to_dict())

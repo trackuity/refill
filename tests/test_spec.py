@@ -1,8 +1,11 @@
 from __future__ import annotations
+from dataclasses import dataclass
+from typing import Dict, List
+from typing_extensions import TypedDict
 
 import pytest
 
-from hydrofile.spec import apply_spec, select_data
+from hydrofile.spec import Selector, Spec, apply_spec, select_data
 
 
 @pytest.mark.parametrize(
@@ -32,7 +35,7 @@ def test_select_data(selector, expected):
             {"stats": {"views": {"2021-11-01": 1, "2021-11-02": 2, "2021-11-03": 3}}},
             {
                 "charts": {
-                    "mychart": {
+                    "views_chart": {
                         "categories": "stats.views|keys",
                         "series": {"views": "stats.views"},
                     }
@@ -40,7 +43,7 @@ def test_select_data(selector, expected):
             },
             {
                 "charts": {
-                    "mychart": {
+                    "views_chart": {
                         "categories": ["2021-11-01", "2021-11-02", "2021-11-03"],
                         "series": {
                             "views": {"2021-11-01": 1, "2021-11-02": 2, "2021-11-03": 3}
@@ -53,3 +56,40 @@ def test_select_data(selector, expected):
 )
 def test_apply_spec(data, spec, expected):
     assert apply_spec(data, spec) == expected
+
+
+def test_spec_class():
+    class DummyChartSpecDict(TypedDict):
+        categories: Selector
+        series: Dict[str, Selector]
+
+    @dataclass
+    class DummySpec(Spec):
+        charts: Dict[str, DummyChartSpecDict]
+
+    spec = DummySpec(
+        variables={"item_name": "item.name"},
+        charts={
+            "views_chart": {
+                "categories": "stats.views|keys",
+                "series": {"views": "stats.views"},
+            }
+        },
+    )
+
+    assert DummySpec.from_json(spec.to_json()) == spec
+
+    assert spec.apply(
+        {
+            "item": {"name": "Yolo"},
+            "stats": {"views": {"2021-11-01": 1, "2021-11-02": 2}},
+        }
+    ) == {
+        "variables": {"item_name": "Yolo"},
+        "charts": {
+            "views_chart": {
+                "categories": ["2021-11-01", "2021-11-02"],
+                "series": {"views": {"2021-11-01": 1, "2021-11-02": 2}},
+            }
+        },
+    }
