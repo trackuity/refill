@@ -1,6 +1,14 @@
 from __future__ import annotations
-from typing import Dict, List, Union, TYPE_CHECKING
-from typing_extensions import Protocol
+from typing import (
+    Any,
+    Dict,
+    List,
+    Type,
+    Union,
+    TYPE_CHECKING,
+    get_type_hints,
+)
+from typing_extensions import get_args, get_origin
 from dataclasses import asdict, dataclass
 
 import json
@@ -10,17 +18,10 @@ from pyparsing import Word, alphas, alphanums
 
 Selector = str
 
-if TYPE_CHECKING:
-    # nasty trickery to make recursive JSON types possible
-    # cfr. https://github.com/python/typing/issues/182#issuecomment-966151818
-
-    class JSONArray(List[JSONValue], Protocol):  # type: ignore
-        __class__: Type[List[JSONValue]]  # type: ignore
-
-    class JSONObject(Dict[str, JSONValue], Protocol):  # type: ignore
-        __class__: Type[Dict[str, JSONValue]]  # type: ignore
-
-    JSONValue = Union[None, int, float, str, JSONArray, JSONObject]
+JSONNumber = Union[int, float]
+JSONValue = Union[JSONNumber, str, bool, None, Dict[str, Any], List[Any]]
+JSONArray = List[JSONValue]
+JSONObject = Dict[str, JSONValue]
 
 
 field_token = Word(alphas + "_", alphanums + "_").setResultsName(
@@ -43,8 +44,10 @@ def select_data(data: JSONObject, selector: Selector) -> JSONValue:
     for field in parsed.fields:
         if isinstance(selected, list):
             selected = [item[field] for item in selected]
-        else:
+        elif isinstance(selected, dict):
             selected = selected[field]
+        else:
+            raise ValueError(f"unexpected type in given data: {type(selected)}")
 
     for filter_ in parsed.filters:
         try:
@@ -76,13 +79,43 @@ def keys_unsorted_filter(x: JSONValue) -> JSONArray:
 
 
 def apply_spec(data: JSONObject, spec: JSONObject) -> JSONObject:
-    result = {}
+    result: JSONObject = {}
     for key, value in spec.items():
         if isinstance(value, str):
             result[key] = select_data(data, value)
-        else:
+        elif isinstance(value, dict):
             result[key] = apply_spec(data, value)
+        else:
+            raise ValueError(f"unexpected type in given data: {type(value)}")
     return result
+
+
+def validate_spec(
+    target_cls: Type, spec: JSONObject, globalns=None, localns=None
+) -> None:
+    hints = get_type_hints(target_cls, globalns, localns)
+    diff = set(hints.keys()).symmetric_difference(set(spec.keys()))
+    if diff:
+        raise ValueError(f"missing and/or superfluous key(s) in {target_cls}: {diff}")
+    for name, sub_spec in spec.items():
+        hint = hints[name]
+        args = get_args(hint)
+        if isinstance(sub_spec, str):
+            assert all(arg in (str, int, float, JSONNumber) for arg in args)
+        elif get_origin(hint) is dict:
+            assert isinstance(sub_spec, dict)
+            for value in sub_spec.values():
+                if isinstance(value, str):
+                    assert all(
+                        arg in (str, int, float, JSONNumber)
+                        for arg in get_args(args[1])
+                    )
+                else:
+                    validate_spec(args[1], value)
+        else:
+            raise ValueError(
+                f"unexpected type hint encountered in {target_cls}: {hint}"
+            )
 
 
 @dataclass
@@ -91,7 +124,7 @@ class Spec:
 
     @classmethod
     def from_dict(cls, json_dict: JSONObject) -> Spec:
-        return cls(**json_dict)
+        return cls(**json_dict)  # type: ignore
 
     def to_dict(self) -> JSONObject:
         return asdict(self)
@@ -105,3 +138,6 @@ class Spec:
 
     def apply(self, data: JSONObject) -> JSONObject:
         return apply_spec(data, self.to_dict())
+
+    def validate(self, target_cls: Type, globalns=None, localns=None) -> None:
+        validate_spec(target_cls, self.to_dict(), globalns, localns)
