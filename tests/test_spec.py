@@ -5,7 +5,14 @@ from typing_extensions import TypedDict
 
 import pytest
 
-from hydrofile.spec import Selector, Spec, apply_spec, select_data, validate_spec
+from hydrofile.spec import (
+    Selector,
+    Spec,
+    apply_spec,
+    convert_data,
+    select_data,
+    validate_spec,
+)
 
 
 @pytest.mark.parametrize(
@@ -77,11 +84,12 @@ class WrongDummyTarget(TypedDict):
         )
     ],
 )
-def test_apply_spec(data, spec, expected, right_target_cls, wrong_target_cls):
-    assert apply_spec(data, spec) == expected
-    validate_spec(right_target_cls, spec)
+def test_spec_functions(data, spec, expected, right_target_cls, wrong_target_cls):
+    assert apply_spec(spec, data) == expected
+    validate_spec(spec, right_target_cls)
+    assert convert_data(data, spec, right_target_cls) == expected
     with pytest.raises(ValueError) as excinfo:
-        validate_spec(wrong_target_cls, spec)
+        validate_spec(spec, wrong_target_cls)
     assert "{'charts'}" in str(excinfo.value)
 
 
@@ -92,6 +100,7 @@ def test_spec_class():
 
     @dataclass
     class DummySpec(Spec):
+        variables: Dict[str, Selector]
         charts: Dict[str, DummyChartSpecDict]
 
     spec = DummySpec(
@@ -104,14 +113,17 @@ def test_spec_class():
         },
     )
 
-    assert DummySpec.from_json(spec.to_json()) == spec
+    assert Spec.from_json(spec.to_json()) == spec
 
-    assert spec.apply(
-        {
-            "item": {"name": "Yolo"},
-            "stats": {"views": {"2021-11-01": 1, "2021-11-02": 2}},
-        }
-    ) == {
+    # check if it works for non-dataclass spec too
+    plain_spec = Spec.from_dict(spec.to_dict())
+    assert Spec.from_json(plain_spec.to_json()) == plain_spec
+
+    data_dict = {
+        "item": {"name": "Yolo"},
+        "stats": {"views": {"2021-11-01": 1, "2021-11-02": 2}},
+    }
+    expected_dict = {
         "variables": {"item_name": "Yolo"},
         "charts": {
             "views_chart": {
@@ -121,22 +133,24 @@ def test_spec_class():
         },
     }
 
-    class DummyChartTargetDict(TypedDict):
-        categories: List[str]
-        series: Dict[str, Dict[str, Union[int, float]]]
+    assert spec.apply(data_dict) == expected_dict
 
-    class RightDummyTarget(TypedDict):
+    class RightLocalTarget(TypedDict):
         variables: Dict[str, str]
         charts: Dict[str, DummyChartTargetDict]
 
     # No assert as it simply needs to run without raising exceptions.
     # Also, passing globals() and locals() is needed here because the
     # classes above are local, but is typically not needed in practice.
-    spec.validate(RightDummyTarget, globals(), locals())
+    spec.validate(RightLocalTarget, globals(), locals())
 
-    class WrongDummyTarget(TypedDict):
+    class WrongLocalTarget(TypedDict):
         variables: Dict[str, str]
 
     with pytest.raises(ValueError) as excinfo:
-        spec.validate(WrongDummyTarget, globals(), locals())
+        spec.validate(WrongLocalTarget, globals(), locals())
     assert "{'charts'}" in str(excinfo.value)
+
+    assert (
+        spec.convert(data_dict, RightLocalTarget, globals(), locals()) == expected_dict
+    )

@@ -1,15 +1,16 @@
 from __future__ import annotations
+from dataclasses import asdict, is_dataclass
 from typing import (
     Any,
     Dict,
     List,
     Type,
+    TypeVar,
     Union,
-    TYPE_CHECKING,
+    cast,
     get_type_hints,
 )
 from typing_extensions import get_args, get_origin
-from dataclasses import asdict, dataclass
 
 import json
 
@@ -78,20 +79,20 @@ def keys_unsorted_filter(x: JSONValue) -> JSONArray:
         raise ValueError("filter cannot be applied to given value")
 
 
-def apply_spec(data: JSONObject, spec: JSONObject) -> JSONObject:
+def apply_spec(spec: JSONObject, data: JSONObject) -> JSONObject:
     result: JSONObject = {}
     for key, value in spec.items():
         if isinstance(value, str):
             result[key] = select_data(data, value)
         elif isinstance(value, dict):
-            result[key] = apply_spec(data, value)
+            result[key] = apply_spec(value, data)
         else:
             raise ValueError(f"unexpected type in given data: {type(value)}")
     return result
 
 
 def validate_spec(
-    target_cls: Type, spec: JSONObject, globalns=None, localns=None
+    spec: JSONObject, target_cls: Type, globalns=None, localns=None
 ) -> None:
     hints = get_type_hints(target_cls, globalns, localns)
     diff = set(hints.keys()).symmetric_difference(set(spec.keys()))
@@ -111,33 +112,63 @@ def validate_spec(
                         for arg in get_args(args[1])
                     )
                 else:
-                    validate_spec(args[1], value)
+                    validate_spec(value, args[1])
         else:
             raise ValueError(
                 f"unexpected type hint encountered in {target_cls}: {hint}"
             )
 
 
-@dataclass
+TargetType = TypeVar("TargetType")
+
+
+def convert_data(
+    data: JSONObject,
+    spec: JSONObject,
+    target_cls: Type[TargetType],
+    globalns=None,
+    localns=None,
+) -> TargetType:
+    validate_spec(spec, target_cls, globalns, localns)
+    # target is validated, so we can safely cast now
+    return cast(TargetType, apply_spec(spec, data))
+
+
 class Spec:
-    variables: Dict[str, Selector]
+    def __init__(self, **dict_) -> None:
+        self._dict = dict_
 
     @classmethod
-    def from_dict(cls, json_dict: JSONObject) -> Spec:
-        return cls(**json_dict)  # type: ignore
+    def from_dict(cls, dict_) -> Spec:
+        return cls(**dict_)
 
     def to_dict(self) -> JSONObject:
-        return asdict(self)
+        if is_dataclass(self):
+            return asdict(self)
+        else:
+            return self._dict
+
+    def __eq__(self, other) -> bool:
+        return isinstance(other, Spec) and self.to_dict() == other.to_dict()
 
     @classmethod
-    def from_json(cls, json_str: str) -> Spec:
-        return cls.from_dict(json.loads(json_str))
+    def from_json(cls, json_: str) -> Spec:
+        return cls.from_dict(json.loads(json_))
 
-    def to_json(self) -> str:
+    def to_json(self):
         return json.dumps(self.to_dict())
 
     def apply(self, data: JSONObject) -> JSONObject:
-        return apply_spec(data, self.to_dict())
+        return apply_spec(self.to_dict(), data)
 
     def validate(self, target_cls: Type, globalns=None, localns=None) -> None:
-        validate_spec(target_cls, self.to_dict(), globalns, localns)
+        validate_spec(self.to_dict(), target_cls, globalns, localns)
+
+    def convert(
+        self,
+        data: JSONObject,
+        target_cls: Type[TargetType],
+        globalns=None,
+        localns=None,
+    ) -> TargetType:
+        return convert_data(data, self.to_dict(), target_cls, globalns, localns)
