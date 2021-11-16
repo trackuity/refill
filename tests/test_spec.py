@@ -1,18 +1,11 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Dict, List, Union
-from typing_extensions import TypedDict
 
 import pytest
-
-from hydrofile.spec import (
-    Selector,
-    Spec,
-    apply_spec,
-    convert_data,
-    select_data,
-    validate_spec,
-)
+from hydrofile.spec import Selector, Spec, apply_spec, select_data, validate_spec
+from typing_extensions import TypedDict
 
 
 @pytest.mark.parametrize(
@@ -87,7 +80,6 @@ class WrongDummyTarget(TypedDict):
 def test_spec_functions(data, spec, expected, right_target_cls, wrong_target_cls):
     assert apply_spec(spec, data) == expected
     validate_spec(spec, right_target_cls)
-    assert convert_data(data, spec, right_target_cls) == expected
     with pytest.raises(ValueError) as excinfo:
         validate_spec(spec, wrong_target_cls)
     assert "{'charts'}" in str(excinfo.value)
@@ -150,7 +142,3 @@ def test_spec_class():
     with pytest.raises(ValueError) as excinfo:
         spec.validate(WrongLocalTarget, globals(), locals())
     assert "{'charts'}" in str(excinfo.value)
-
-    assert (
-        spec.convert(data_dict, RightLocalTarget, globals(), locals()) == expected_dict
-    )

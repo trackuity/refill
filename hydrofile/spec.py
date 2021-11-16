@@ -1,20 +1,11 @@
 from __future__ import annotations
-from dataclasses import asdict, is_dataclass
-from typing import (
-    Any,
-    Dict,
-    List,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-    get_type_hints,
-)
-from typing_extensions import get_args, get_origin
 
 import json
+from dataclasses import asdict, is_dataclass
+from typing import Any, Dict, List, Type, Union, get_type_hints
 
-from pyparsing import Word, alphas, alphanums
+from pyparsing import Word, alphanums, alphas
+from typing_extensions import get_args, get_origin
 
 
 Selector = str
@@ -38,7 +29,7 @@ def parse_selector(selector: Selector):
     return selector_parser.parseString(selector)
 
 
-def select_data(data: JSONObject, selector: Selector) -> JSONValue:
+def select_data(data: Dict[str, Any], selector: Selector):
     parsed = parse_selector(selector)
 
     selected = data
@@ -61,7 +52,7 @@ def select_data(data: JSONObject, selector: Selector) -> JSONValue:
     return selected
 
 
-def keys_filter(x: JSONValue) -> JSONArray:
+def keys_filter(x):
     if isinstance(x, dict):
         return sorted(x.keys())
     elif isinstance(x, list):
@@ -70,7 +61,7 @@ def keys_filter(x: JSONValue) -> JSONArray:
         raise ValueError("filter cannot be applied to given value")
 
 
-def keys_unsorted_filter(x: JSONValue) -> JSONArray:
+def keys_unsorted_filter(x):
     if isinstance(x, dict):
         return list(x.keys())
     elif isinstance(x, list):
@@ -79,7 +70,7 @@ def keys_unsorted_filter(x: JSONValue) -> JSONArray:
         raise ValueError("filter cannot be applied to given value")
 
 
-def apply_spec(spec: JSONObject, data: JSONObject) -> JSONObject:
+def apply_spec(spec: JSONObject, data: Dict[str, Any]) -> Dict[str, Any]:
     result: JSONObject = {}
     for key, value in spec.items():
         if isinstance(value, str):
@@ -119,21 +110,6 @@ def validate_spec(
             )
 
 
-TargetType = TypeVar("TargetType")
-
-
-def convert_data(
-    data: JSONObject,
-    spec: JSONObject,
-    target_cls: Type[TargetType],
-    globalns=None,
-    localns=None,
-) -> TargetType:
-    validate_spec(spec, target_cls, globalns, localns)
-    # target is validated, so we can safely cast now
-    return cast(TargetType, apply_spec(spec, data))
-
-
 class Spec:
     def __init__(self, **dict_) -> None:
         self._dict = dict_
@@ -158,17 +134,8 @@ class Spec:
     def to_json(self):
         return json.dumps(self.to_dict())
 
-    def apply(self, data: JSONObject) -> JSONObject:
+    def apply(self, data: Dict[str, Any]) -> Dict[str, Any]:
         return apply_spec(self.to_dict(), data)
 
     def validate(self, target_cls: Type, globalns=None, localns=None) -> None:
         validate_spec(self.to_dict(), target_cls, globalns, localns)
-
-    def convert(
-        self,
-        data: JSONObject,
-        target_cls: Type[TargetType],
-        globalns=None,
-        localns=None,
-    ) -> TargetType:
-        return convert_data(data, self.to_dict(), target_cls, globalns, localns)
