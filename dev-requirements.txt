@@ -17,6 +17,8 @@ importlib-metadata==4.8.2
     #   pytest
 iniconfig==1.1.1
     # via pytest
+isort==5.10.1
+    # via -r dev-requirements.in
 mypy-extensions==0.4.3
     # via black
 packaging==21.2
