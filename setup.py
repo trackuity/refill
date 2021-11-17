@@ -1,5 +1,6 @@
 from setuptools import setup
 
+install_requires = ["pyparsing", "typing_extensions", "babel"]
 setup(
     name="hydrofile",
     version="0.1",
@@ -7,5 +8,5 @@ setup(
     license="Apache Software License (ASF)",
     url="https://github.com/trackuity/hydrofile",
     py_modules=["hydrofile"],
-    install_requires=["pyparsing", "typing_extensions"],
+    install_requires=install_requires,
 )

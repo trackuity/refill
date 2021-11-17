@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import urllib.request
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from io import BytesIO
-from typing import IO, Any, ClassVar, Dict, Generic, Type, TypeVar, Union
+from typing import IO, Any, Callable, ClassVar, Dict, Generic, Type, TypeVar, Union
 
 from hydrofile.spec import Spec
 
@@ -42,10 +43,19 @@ class Filler(ABC, Generic[SpecType, ParamsType, TemplateType]):
     params_cls: ClassVar[Type[ParamsType]]
 
     def __init__(
-        self, spec: SpecType, data: Dict[str, Any], globalns=None, localns=None
+        self,
+        spec: SpecType,
+        data: Dict[str, Any],
+        *,
+        locale: str = "en_US",
+        urlopen: Callable[[str], IO[bytes]] = urllib.request.urlopen,
+        globalns=None,
+        localns=None,
     ) -> None:
         self.params_cls.validate_spec(spec, globalns, localns)
-        self._params = self.params_cls(**spec.apply(data))
+        self._params = self.params_cls(
+            **spec.apply(data, locale=locale, urlopen=urlopen)
+        )
 
     def fill(self, template: TemplateType) -> bytes:
         return template.render(self._params)

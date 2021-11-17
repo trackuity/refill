@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import json
 from dataclasses import dataclass
 from typing import Dict, List, Union
 
@@ -13,8 +15,36 @@ from typing_extensions import TypedDict
     [
         ("numbers", [1, 2, 4]),
         ("languages.iso", ["EN", "NL", "FR"]),
-        ("stats.views|keys", ["2021-11-01", "2021-11-02", "2021-11-03"]),
+        ("stats.views|keys", ["2021-11-02", "2021-11-01", "2021-11-03"]),
+        ("stats.views|keys|sort", ["2021-11-01", "2021-11-02", "2021-11-03"]),
         ("stats.views|keys|keys", [0, 1, 2]),
+        ("stats.views|values", [12, 10, 14]),
+        ("numbers|values", [1, 2, 4]),
+        ("numbers|reverse", [4, 2, 1]),
+        ("person.name|lower", "john doe"),
+        ("person.name|upper", "JOHN DOE"),
+        ("languages.iso|lower", ["en", "nl", "fr"]),
+        ("person.age|str", "45"),
+        ("person.age|str()", "45"),
+        ("person.age|str|int", 45),
+        ("numbers|first", 1),
+        ("numbers|last", 4),
+        ("numbers|head", [1]),
+        ("numbers|head(2)", [1, 2]),
+        ("numbers|tail", [4]),
+        ("numbers|tail(2)", [2, 4]),
+        ("numbers|tail(2)|head(1)", [2]),
+        ("stats.views|head", {"2021-11-02": 12}),
+        ("stats.views|tail", {"2021-11-03": 14}),
+        ("stats.views|reverse|head", {"2021-11-03": 14}),
+        ("person.weight_in_grams|format_number", "75,148"),
+        ("person.weight_in_grams|format_currency", "$75,148.00"),
+        ("person.weight_in_grams|format_currency(EUR)", "€75,148.00"),
+        ("stats.views|head(1)|format_number", {"2021-11-02": "12"}),
+        ("stats.views|head(1)|format_currency", {"2021-11-02": "$12.00"}),
+        ("person.data_urls|first|fetch", b'"testdata"'),
+        ("person.data_urls|fetch", [b'"testdata"']),
+        ("person.data_urls|first|fetch|str(UTF8)", '"testdata"'),
     ],
 )
 def test_select_data(selector, expected):
@@ -23,6 +53,17 @@ def test_select_data(selector, expected):
         "languages": [{"iso": "EN"}, {"iso": "NL"}, {"iso": "FR"}],
         "stats": {
             "views": {"2021-11-02": 12, "2021-11-01": 10, "2021-11-03": 14},
+        },
+        "person": {
+            "name": "John Doe",
+            "age": 45,
+            "weight_in_grams": 75148,
+            "data_urls": [
+                "data:{};base64,{}".format(
+                    "application/json",
+                    base64.b64encode(json.dumps("testdata").encode()).decode(),
+                )
+            ],
         },
     }
     assert select_data(data, selector) == expected
@@ -96,7 +137,10 @@ def test_spec_class():
         charts: Dict[str, DummyChartSpecDict]
 
     spec = DummySpec(
-        variables={"item_name": "item.name"},
+        variables={
+            "item_name": "item.name",
+            "item_price": "item.price|format_currency(EUR)",
+        },
         charts={
             "views_chart": {
                 "categories": "stats.views|keys",
@@ -112,11 +156,11 @@ def test_spec_class():
     assert Spec.from_json(plain_spec.to_json()) == plain_spec
 
     data_dict = {
-        "item": {"name": "Yolo"},
+        "item": {"name": "Yolo", "price": 84.95},
         "stats": {"views": {"2021-11-01": 1, "2021-11-02": 2}},
     }
     expected_dict = {
-        "variables": {"item_name": "Yolo"},
+        "variables": {"item_name": "Yolo", "item_price": "€\xa084,95"},
         "charts": {
             "views_chart": {
                 "categories": ["2021-11-01", "2021-11-02"],
@@ -125,7 +169,7 @@ def test_spec_class():
         },
     }
 
-    assert spec.apply(data_dict) == expected_dict
+    assert spec.apply(data_dict, locale="nl_BE") == expected_dict
 
     class RightLocalTarget(TypedDict):
         variables: Dict[str, str]

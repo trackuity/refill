@@ -5,7 +5,7 @@ from typing import IO, Dict, List, Union
 
 import pytest
 from hydrofile.core import Filler, Params, Template
-from hydrofile.spec import Selector, Spec
+from hydrofile.spec import Selector, Spec, format_currency_filter
 from typing_extensions import TypedDict
 
 
@@ -43,7 +43,7 @@ class DummyFiller(Filler[DummySpec, DummyParams, DummyTemplate]):
 @pytest.fixture
 def dummy_spec():
     return DummySpec(
-        variables={"item_id": "item.id"},
+        variables={"item_id": "item.id", "item_price": "item.price|format_currency"},
         charts={
             "views_chart": {
                 "categories": "stats.views|keys",
@@ -56,7 +56,7 @@ def dummy_spec():
 @pytest.fixture
 def dummy_data():
     return {
-        "item": {"id": "12345"},
+        "item": {"id": "12345", "price": 84.95},
         "stats": {"views": {"monday": 22, "tuesday": 33}},
     }
 
@@ -64,7 +64,12 @@ def dummy_data():
 @pytest.fixture
 def dummy_params(dummy_data):
     return DummyParams(
-        variables={"item_id": dummy_data["item"]["id"]},
+        variables={
+            "item_id": dummy_data["item"]["id"],
+            "item_price": str(
+                format_currency_filter(dummy_data["item"]["price"], locale="nl_BE")
+            ),
+        },
         charts={
             "views_chart": {
                 "categories": list(dummy_data["stats"]["views"].keys()),
@@ -81,7 +86,7 @@ def dummy_template():
 
 @pytest.fixture
 def dummy_filler(dummy_spec: DummySpec, dummy_data):
-    return DummyFiller(dummy_spec, dummy_data)
+    return DummyFiller(dummy_spec, dummy_data, locale="nl_BE")
 
 
 def test_params(dummy_params: DummyParams, dummy_spec: DummySpec):
