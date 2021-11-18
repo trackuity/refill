@@ -23,8 +23,8 @@ ParamsType = TypeVar("ParamsType", bound=Params)
 
 
 class Template(ABC, Generic[ParamsType]):
-    def __init__(self, path_or_bytes: Union[str, IO[bytes]]) -> None:
-        self._path_or_bytes = path_or_bytes
+    def __init__(self, path_or_file: Union[str, IO[bytes]]) -> None:
+        self._path_or_file = path_or_file
 
     def render(self, params: ParamsType) -> bytes:
         buffer = BytesIO()
