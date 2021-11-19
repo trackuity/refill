@@ -212,8 +212,10 @@ def tail_filter(x, n: int = 1):
 def sum_filter(x):
     if isinstance(x, list):
         return sum(x)
+    elif isinstance(x, dict):
+        return sum(x.values())
     else:
-        raise ValueError("sum filgter cannot be applied to given value")
+        raise ValueError("sum filter cannot be applied to given value")
 
 
 def format_number_filter(x, *, locale: str):

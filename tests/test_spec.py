@@ -36,6 +36,7 @@ from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
         ("numbers|tail(2)", [2, 4]),
         ("numbers|tail(2)|head(1)", [2]),
         ("numbers|sum", sum([1, 2, 4])),
+        ("stats.views|sum", sum([12, 10, 14])),
         ("stats.views|head", {"2021-11-02": 12}),
         ("stats.views|tail", {"2021-11-03": 14}),
         ("stats.views|reverse|head", {"2021-11-03": 14}),
