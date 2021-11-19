@@ -45,6 +45,8 @@ def select_data(
     locale: str = "en_US",
     urlopen: Callable[[str], IO[bytes]] = urllib.request.urlopen,
 ):
+    locale = locale.replace("-", "_")  # babel wants underscores, not dashes
+
     parsed = parse_selector(selector)
 
     selecteds = []
