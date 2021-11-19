@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 install_requires = ["pyparsing", "typing_extensions", "babel"]
@@ -12,7 +12,8 @@ setup(
     description="Reimagined filling of document templates with data",
     license="Apache License, Version 2.0",
     url="https://github.com/trackuity/refill",
-    py_modules=["refill"],
+    packages=find_packages(exclude=("tests",)),
+    python_requires=">=3.7",
     install_requires=install_requires,
     extras_require={
         "all": list(set(sum(extras_require.values(), []))),
