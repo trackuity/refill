@@ -84,6 +84,7 @@ def select_data(
                 "last": last_filter,
                 "head": head_filter,
                 "tail": tail_filter,
+                "sum": sum_filter,
                 "format_number": format_number_filter,
                 "format_currency": format_currency_filter,
                 "fetch": fetch_filter,
@@ -204,6 +205,13 @@ def tail_filter(x, n: int = 1):
         return dict(list(x.items())[-n:])
     else:
         raise ValueError("tail filter cannot be applied to given value")
+
+
+def sum_filter(x):
+    if isinstance(x, list):
+        return sum(x)
+    else:
+        raise ValueError("sum filgter cannot be applied to given value")
 
 
 def format_number_filter(x, *, locale: str):
