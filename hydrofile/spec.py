@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import inspect
 import json
 import urllib.request
@@ -23,11 +24,14 @@ JSONObject = Dict[str, JSONValue]
 field_token = Word(alphas + "_", alphanums + "_").setResultsName(
     "fields", listAllMatches=True
 )
+selection_token = Group(field_token + ("." + field_token)[0, ...]).setResultsName(  # type: ignore
+    "selections", listAllMatches=True
+)
 filter_token = "|" + Group(
     Word(alphas + "_", alphanums + "_").setResultsName("name")
     + Optional("(" + Optional(delimitedList(Word(alphanums)), [])("arguments") + ")")  # type: ignore
 ).setResultsName("filters", listAllMatches=True)
-selector_parser = field_token + ("." + field_token)[0, ...] + filter_token[0, ...]  # type: ignore
+selector_parser = delimitedList(selection_token, delim="+") + filter_token[0, ...]  # type: ignore
 
 
 def parse_selector(selector: Selector):
@@ -43,14 +47,27 @@ def select_data(
 ):
     parsed = parse_selector(selector)
 
-    selected = data
-    for field in parsed.fields:
-        if isinstance(selected, list):
-            selected = [item[field] for item in selected]
-        elif isinstance(selected, dict):
-            selected = selected[field]
+    selecteds = []
+    for selection in parsed.selections:
+        selected = data
+        for field in selection.fields:
+            if isinstance(selected, list):
+                selected = [item[field] for item in selected]
+            elif isinstance(selected, dict):
+                selected = selected[field]
+            else:
+                raise ValueError(f"unexpected type in given data: {type(selected)}")
+        selecteds.append(selected)
+
+    def combine(x, y):
+        if isinstance(x, list) and isinstance(y, list):
+            return x + y
+        elif isinstance(x, dict) and isinstance(y, dict):
+            return {**x, **y}
         else:
-            raise ValueError(f"unexpected type in given data: {type(selected)}")
+            raise ValueError(f"cannot combine {x} and {y}")
+
+    selected = functools.reduce(combine, selecteds)
 
     for filter_ in parsed.filters:
         try:

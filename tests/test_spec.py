@@ -45,6 +45,8 @@ from typing_extensions import TypedDict
         ("person.data_urls|first|fetch", b'"testdata"'),
         ("person.data_urls|fetch", [b'"testdata"']),
         ("person.data_urls|first|fetch|str(UTF8)", '"testdata"'),
+        ("numbers+numbers", [1, 2, 4, 1, 2, 4]),
+        ("stats.views+stats.conversions|head", {"2021-11-02": 3}),
     ],
 )
 def test_select_data(selector, expected):
@@ -53,6 +55,7 @@ def test_select_data(selector, expected):
         "languages": [{"iso": "EN"}, {"iso": "NL"}, {"iso": "FR"}],
         "stats": {
             "views": {"2021-11-02": 12, "2021-11-01": 10, "2021-11-03": 14},
+            "conversions": {"2021-11-02": 3},
         },
         "person": {
             "name": "John Doe",
