@@ -6,29 +6,47 @@
 #
 attrs==21.2.0
     # via pytest
+backports.entry-points-selectable==1.1.1
+    # via virtualenv
 black==21.10b0
     # via -r dev-requirements.in
+cfgv==3.3.1
+    # via pre-commit
 click==8.0.3
     # via black
+distlib==0.3.3
+    # via virtualenv
+filelock==3.4.0
+    # via virtualenv
+identify==2.4.0
+    # via pre-commit
 importlib-metadata==4.8.2
     # via
     #   click
     #   pluggy
+    #   pre-commit
     #   pytest
+    #   virtualenv
 iniconfig==1.1.1
     # via pytest
 isort==5.10.1
     # via -r dev-requirements.in
 mypy-extensions==0.4.3
     # via black
+nodeenv==1.6.0
+    # via pre-commit
 packaging==21.2
     # via pytest
 pathspec==0.9.0
     # via black
 platformdirs==2.4.0
-    # via black
+    # via
+    #   black
+    #   virtualenv
 pluggy==1.0.0
     # via pytest
+pre-commit==2.15.0
+    # via -r dev-requirements.in
 py==1.11.0
     # via pytest
 pyparsing==2.4.7
@@ -37,10 +55,16 @@ pyparsing==2.4.7
     #   packaging
 pytest==6.2.5
     # via -r dev-requirements.in
+pyyaml==6.0
+    # via pre-commit
 regex==2021.11.10
     # via black
+six==1.16.0
+    # via virtualenv
 toml==0.10.2
-    # via pytest
+    # via
+    #   pre-commit
+    #   pytest
 tomli==1.2.2
     # via black
 typed-ast==1.5.0
@@ -50,5 +74,7 @@ typing-extensions==3.10.0.2
     #   -c requirements.txt
     #   black
     #   importlib-metadata
+virtualenv==20.10.0
+    # via pre-commit
 zipp==3.6.0
     # via importlib-metadata

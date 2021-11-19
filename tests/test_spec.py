@@ -6,8 +6,9 @@ from dataclasses import dataclass
 from typing import Dict, List, Union
 
 import pytest
-from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
 from typing_extensions import TypedDict
+
+from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
 
 
 @pytest.mark.parametrize(

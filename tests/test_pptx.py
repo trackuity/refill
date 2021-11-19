@@ -10,6 +10,7 @@ from pptx.chart.data import ChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import PP_PLACEHOLDER_TYPE
 from pptx.util import Inches
+
 from refill.pptx import PPTXFiller, PPTXParams, PPTXSpec, PPTXTemplate
 from refill.spec import format_number_filter
 

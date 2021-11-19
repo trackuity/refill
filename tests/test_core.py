@@ -4,9 +4,10 @@ from dataclasses import dataclass
 from typing import IO, Dict, List, Union
 
 import pytest
+from typing_extensions import TypedDict
+
 from refill.core import Filler, Params, Template
 from refill.spec import Selector, Spec, format_currency_filter
-from typing_extensions import TypedDict
 
 
 class DummyChartSpecDict(TypedDict):

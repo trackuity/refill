@@ -3,7 +3,7 @@ EXTRAS=all
 
 .PHONY: all sync clean
 
-all: venv requirements.txt dev-requirements.txt sync
+all: venv requirements.txt dev-requirements.txt sync .git/hooks/pre-commit .git/hooks/pre-push
 
 venv:
 	$(PYTHON) -m venv venv
@@ -17,6 +17,14 @@ dev-requirements.txt: dev-requirements.in requirements.txt
 
 sync: venv requirements.txt dev-requirements.txt
 	venv/bin/pip-sync requirements.txt dev-requirements.txt
+
+.git/hooks/pre-commit: .pre-commit-config.yaml
+	venv/bin/pre-commit install -t pre-commit
+	venv/bin/pre-commit run --all-files --hook-stage commit
+
+.git/hooks/pre-push: .pre-commit-config.yaml
+	venv/bin/pre-commit install -t pre-push
+	venv/bin/pre-commit run --all-files --hook-stage push
 
 clean:
 	rm -rf venv

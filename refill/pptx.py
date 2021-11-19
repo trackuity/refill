@@ -7,11 +7,10 @@ from dataclasses import dataclass
 from io import BytesIO
 from typing import IO, Dict, List, Optional, Union
 
-from typing_extensions import TypedDict
-
 from pptx import Presentation
 from pptx.chart.data import ChartData
 from pptx.enum.shapes import PP_PLACEHOLDER_TYPE
+from typing_extensions import TypedDict
 
 from .core import Filler, Params, Template
 from .spec import Selector, Spec
