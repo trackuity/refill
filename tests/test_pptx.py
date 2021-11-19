@@ -5,13 +5,13 @@ import os
 from io import BytesIO
 
 import pytest
-from hydrofile.pptx import PPTXFiller, PPTXParams, PPTXSpec, PPTXTemplate
-from hydrofile.spec import format_number_filter
 from pptx import Presentation
 from pptx.chart.data import ChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import PP_PLACEHOLDER_TYPE
 from pptx.util import Inches
+from refill.pptx import PPTXFiller, PPTXParams, PPTXSpec, PPTXTemplate
+from refill.spec import format_number_filter
 
 
 @pytest.fixture

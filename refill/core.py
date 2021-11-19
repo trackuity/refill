@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from io import BytesIO
 from typing import IO, Any, Callable, ClassVar, Dict, Generic, Type, TypeVar, Union
 
-from hydrofile.spec import Spec
+from .spec import Spec
 
 
 SpecType = TypeVar("SpecType", bound=Spec)

@@ -9,11 +9,12 @@ from typing import IO, Dict, List, Optional, Union
 
 from typing_extensions import TypedDict
 
-from hydrofile.core import Filler, Params, Template
-from hydrofile.spec import Selector, Spec
 from pptx import Presentation
 from pptx.chart.data import ChartData
 from pptx.enum.shapes import PP_PLACEHOLDER_TYPE
+
+from .core import Filler, Params, Template
+from .spec import Selector, Spec
 
 
 class PPTXTableSpecDict(TypedDict):

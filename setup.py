@@ -7,12 +7,12 @@ extras_require = {
 }
 
 setup(
-    name="hydrofile",
+    name="refill",
     version="0.1",
-    description="Machinery for hydrating template files",
-    license="Apache Software License (ASF)",
-    url="https://github.com/trackuity/hydrofile",
-    py_modules=["hydrofile"],
+    description="Reimagined filling of document templates with data",
+    license="Apache License, Version 2.0",
+    url="https://github.com/trackuity/refill",
+    py_modules=["refill"],
     install_requires=install_requires,
     extras_require={
         "all": list(set(sum(extras_require.values(), []))),

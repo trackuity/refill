@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import IO, Dict, List, Union
 
 import pytest
-from hydrofile.core import Filler, Params, Template
-from hydrofile.spec import Selector, Spec, format_currency_filter
+from refill.core import Filler, Params, Template
+from refill.spec import Selector, Spec, format_currency_filter
 from typing_extensions import TypedDict
 
 

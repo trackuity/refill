@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Union
 
 import pytest
-from hydrofile.spec import Selector, Spec, apply_spec, select_data, validate_spec
+from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
 from typing_extensions import TypedDict
 
 
