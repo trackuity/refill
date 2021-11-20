@@ -4,7 +4,7 @@ import urllib.request
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from io import BytesIO
-from typing import IO, Any, Callable, ClassVar, Dict, Generic, Type, TypeVar, Union
+from typing import IO, Any, Callable, Dict, Generic, Type, TypeVar, Union
 
 from .spec import Spec
 
@@ -40,7 +40,7 @@ TemplateType = TypeVar("TemplateType", bound=Template)
 
 
 class Filler(ABC, Generic[SpecType, ParamsType, TemplateType]):
-    params_cls: ClassVar[Type[ParamsType]]
+    params_cls: Type[ParamsType]
 
     def __init__(
         self,
