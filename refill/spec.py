@@ -264,7 +264,12 @@ def apply_spec(
             ignore_key_errors = True
         try:
             if isinstance(value, str):
-                result[key] = select_data(data, value, locale=locale, urlopen=urlopen)
+                if value.startswith("="):
+                    result[key] = result[value[1:]]
+                else:
+                    result[key] = select_data(
+                        data, value, locale=locale, urlopen=urlopen
+                    )
             elif isinstance(value, dict):
                 result[key] = apply_spec(value, data, locale=locale, urlopen=urlopen)
             else:

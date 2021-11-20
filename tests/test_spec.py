@@ -100,23 +100,34 @@ class WrongDummyTarget(TypedDict):
             {
                 "variables": {
                     "item_id": "item.id",
+                    "iid": "=item_id",
                     "item_name?": "item.name",
                     "ignore_me?": "doesnotexist",
+                    "ignore_me_too?": "=doesnotexist",
                 },
                 "charts": {
                     "views_chart": {
                         "categories": "stats.views|keys",
-                        "series": {"views": "stats.views"},
+                        "series": {"views": "stats.views", "vws": "=views"},
                     }
                 },
             },
             {
-                "variables": {"item_id": "AB12345", "item_name": "test item"},
+                "variables": {
+                    "item_id": "AB12345",
+                    "iid": "AB12345",
+                    "item_name": "test item",
+                },
                 "charts": {
                     "views_chart": {
                         "categories": ["2021-11-01", "2021-11-02", "2021-11-03"],
                         "series": {
-                            "views": {"2021-11-01": 1, "2021-11-02": 2, "2021-11-03": 3}
+                            "views": {
+                                "2021-11-01": 1,
+                                "2021-11-02": 2,
+                                "2021-11-03": 3,
+                            },
+                            "vws": {"2021-11-01": 1, "2021-11-02": 2, "2021-11-03": 3},
                         },
                     }
                 },
