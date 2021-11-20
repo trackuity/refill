@@ -94,11 +94,15 @@ class WrongDummyTarget(TypedDict):
     [
         (
             {
-                "item": {"id": "AB12345"},
+                "item": {"id": "AB12345", "name": "test item"},
                 "stats": {"views": {"2021-11-01": 1, "2021-11-02": 2, "2021-11-03": 3}},
             },
             {
-                "variables": {"item_id": "item.id"},
+                "variables": {
+                    "item_id": "item.id",
+                    "item_name?": "item.name",
+                    "ignore_me?": "doesnotexist",
+                },
                 "charts": {
                     "views_chart": {
                         "categories": "stats.views|keys",
@@ -107,9 +111,7 @@ class WrongDummyTarget(TypedDict):
                 },
             },
             {
-                "variables": {
-                    "item_id": "AB12345",
-                },
+                "variables": {"item_id": "AB12345", "item_name": "test item"},
                 "charts": {
                     "views_chart": {
                         "categories": ["2021-11-01", "2021-11-02", "2021-11-03"],

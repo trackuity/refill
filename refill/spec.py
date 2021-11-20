@@ -258,12 +258,20 @@ def apply_spec(
 ) -> Dict[str, Any]:
     result: JSONObject = {}
     for key, value in spec.items():
-        if isinstance(value, str):
-            result[key] = select_data(data, value, locale=locale, urlopen=urlopen)
-        elif isinstance(value, dict):
-            result[key] = apply_spec(value, data, locale=locale, urlopen=urlopen)
-        else:
-            raise ValueError(f"unexpected type in given data: {type(value)}")
+        ignore_key_errors = False
+        if key.endswith("?"):
+            key = key[:-1]
+            ignore_key_errors = True
+        try:
+            if isinstance(value, str):
+                result[key] = select_data(data, value, locale=locale, urlopen=urlopen)
+            elif isinstance(value, dict):
+                result[key] = apply_spec(value, data, locale=locale, urlopen=urlopen)
+            else:
+                raise ValueError(f"unexpected type in given data: {type(value)}")
+        except KeyError:
+            if not ignore_key_errors:
+                raise
     return result
 
 
