@@ -4,6 +4,7 @@ import re
 import string
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from fnmatch import fnmatchcase
 from io import BytesIO
 from typing import IO, Dict, List, Optional, Union
 
@@ -150,13 +151,15 @@ class PicturePlaceholderSubstituter(PlaceholderSubstituter):
 
 
 class TableShapeSubstituter(ShapeSubstituter):
-    def __init__(self, table_name: str, table_params: PPTXTableParamsDict) -> None:
+    def __init__(
+        self, table_name_pattern: str, table_params: PPTXTableParamsDict
+    ) -> None:
         super().__init__()
-        self._table_name = table_name
+        self._table_name_pattern = table_name_pattern
         self._table_params = table_params
 
     def substitute_shape(self, shape):
-        if shape.has_table and shape.name == self._table_name:
+        if shape.has_table and fnmatchcase(shape.name, self._table_name_pattern):
             self.substitute_table(shape.table)
 
     def substitute_table(self, table):
@@ -219,13 +222,15 @@ class TableShapeSubstituter(ShapeSubstituter):
 
 
 class ChartShapeSubstituter(ShapeSubstituter):
-    def __init__(self, chart_name: str, chart_params: PPTXChartParamsDict) -> None:
+    def __init__(
+        self, chart_name_pattern: str, chart_params: PPTXChartParamsDict
+    ) -> None:
         super().__init__()
-        self._chart_name = chart_name
+        self._chart_name_pattern = chart_name_pattern
         self._chart_params = chart_params
 
     def substitute_shape(self, shape):
-        if shape.has_chart and shape.name == self._chart_name:
+        if shape.has_chart and fnmatchcase(shape.name, self._chart_name_pattern):
             self.substitute_chart(shape.chart)
 
     def substitute_chart(self, chart):

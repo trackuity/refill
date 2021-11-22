@@ -43,7 +43,7 @@ def dummy_spec():
         variables={"item_id": "item.id|str"},
         pictures={"item_image": "item.image_url|fetch"},
         tables={
-            "stats_table": {
+            "*": {
                 "stubs": "stats.views|keys",
                 "columns": {
                     "views": "stats.views|format_number",
@@ -52,7 +52,7 @@ def dummy_spec():
             }
         },
         charts={
-            "stats_chart": {
+            "*": {
                 "categories": "stats.views|keys",
                 "series": {"views": "stats.views", "conversions": "stats.conversions"},
             }
@@ -119,7 +119,7 @@ def test_apply_spec(dummy_spec: PPTXSpec, dummy_data, dummy_b64_image):
         "variables": {"item_id": str(dummy_data["item"]["id"])},
         "pictures": {"item_image": base64.b64decode(dummy_b64_image)},
         "tables": {
-            "stats_table": {
+            "*": {
                 "stubs": ["2021-11-01", "2021-11-02", "2021-11-03"],
                 "columns": {
                     "views": {
@@ -132,7 +132,7 @@ def test_apply_spec(dummy_spec: PPTXSpec, dummy_data, dummy_b64_image):
             },
         },
         "charts": {
-            "stats_chart": {
+            "*": {
                 "categories": ["2021-11-01", "2021-11-02", "2021-11-03"],
                 "series": {
                     "views": {
