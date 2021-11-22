@@ -43,6 +43,7 @@ from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
         ("person.weight_in_grams|format_number", "75,148"),
         ("person.weight_in_grams|format_currency", "$75,148.00"),
         ("person.weight_in_grams|format_currency(EUR)", "€75,148.00"),
+        ("conversion_rate|format_percent", "25%"),
         ("stats.views|head(1)|format_number", {"2021-11-02": "12"}),
         ("stats.views|head(1)|format_currency", {"2021-11-02": "$12.00"}),
         ("person.data_urls|first|fetch", b'"testdata"'),
@@ -56,6 +57,7 @@ def test_select_data(selector, expected):
     data = {
         "numbers": [1, 2, 4],
         "languages": [{"iso": "EN"}, {"iso": "NL"}, {"iso": "FR"}],
+        "conversion_rate": 0.253,
         "stats": {
             "views": {"2021-11-02": 12, "2021-11-01": 10, "2021-11-03": 14},
             "conversions": {"2021-11-02": 3},

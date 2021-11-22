@@ -8,7 +8,7 @@ from dataclasses import asdict, is_dataclass
 from itertools import islice
 from typing import IO, Any, Callable, Dict, List, Type, Union, get_type_hints
 
-from babel.numbers import format_currency, format_decimal
+from babel.numbers import format_currency, format_decimal, format_percent
 from pyparsing import Group, Optional, Word, alphanums, alphas, delimitedList
 from typing_extensions import get_args, get_origin
 
@@ -89,6 +89,7 @@ def select_data(
                 "sum": sum_filter,
                 "format_number": format_number_filter,
                 "format_currency": format_currency_filter,
+                "format_percent": format_percent_filter,
                 "fetch": fetch_filter,
             }[filter_.name]
             parameters = inspect.signature(func).parameters
@@ -238,6 +239,17 @@ def format_currency_filter(x, currency: str = "USD", *, locale: str):
         return {k: format_currency_filter(v, locale=locale) for (k, v) in x.items()}
     else:
         raise ValueError("format_currency filter cannot be applied to given value")
+
+
+def format_percent_filter(x, *, locale: str):
+    if isinstance(x, int) or isinstance(x, float):
+        return format_percent(x, locale=locale)
+    elif isinstance(x, list):
+        return [format_percent_filter(i, locale=locale) for i in x]
+    elif isinstance(x, dict):
+        return {k: format_percent_filter(v, locale=locale) for (k, v) in x.items()}
+    else:
+        raise ValueError("format_percent filter cannot be applied to given value")
 
 
 def fetch_filter(x, *, urlopen: Callable[[str], IO[bytes]]):
