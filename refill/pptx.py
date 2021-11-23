@@ -36,12 +36,12 @@ class PPTXSpec(Spec):
 
 
 class PPTXTableParamsDict(TypedDict):
-    stubs: List[str]
+    stubs: Dict[str, str]
     columns: Dict[str, Dict[str, str]]
 
 
 class PPTXChartParamsDict(TypedDict):
-    categories: List[str]
+    categories: Dict[str, str]
     series: Dict[str, Dict[str, Union[int, float]]]
 
 
@@ -156,7 +156,9 @@ class TableShapeSubstituter(ShapeSubstituter):
     ) -> None:
         super().__init__()
         self._table_name_pattern = table_name_pattern
-        self._table_params = table_params
+        self._keys = list(table_params["stubs"].keys())
+        self._stubs = table_params["stubs"]
+        self._columns = table_params["columns"]
 
     def substitute_shape(self, shape):
         if shape.has_table and fnmatchcase(shape.name, self._table_name_pattern):
@@ -199,7 +201,7 @@ class TableShapeSubstituter(ShapeSubstituter):
             stub_index = int(re.sub(r"\$[a-zA-Z_]*", "", text)) - 1
         else:
             stub_index = row_number
-        return self._table_params["stubs"][stub_index]
+        return self._keys[stub_index]
 
     def derive_table_column_index_value(
         self, text: str, column_number: int
@@ -214,11 +216,9 @@ class TableShapeSubstituter(ShapeSubstituter):
         text: str,
     ) -> Optional[str]:
         if column_index_value is None:
-            return row_index_value
+            return self._stubs[row_index_value]
         else:
-            return self._table_params["columns"][column_index_value].get(
-                row_index_value
-            )
+            return self._columns[column_index_value].get(row_index_value)
 
 
 class ChartShapeSubstituter(ShapeSubstituter):
@@ -227,7 +227,9 @@ class ChartShapeSubstituter(ShapeSubstituter):
     ) -> None:
         super().__init__()
         self._chart_name_pattern = chart_name_pattern
-        self._chart_params = chart_params
+        self._keys = list(chart_params["categories"].keys())
+        self._categories = chart_params["categories"]
+        self._series = chart_params["series"]
 
     def substitute_shape(self, shape):
         if shape.has_chart and fnmatchcase(shape.name, self._chart_name_pattern):
@@ -250,15 +252,15 @@ class ChartShapeSubstituter(ShapeSubstituter):
         chart.replace_data(chart_data)
 
     def generate_chart_index_values(self, current_values) -> List[str]:
-        return self._chart_params["categories"]
+        return self._keys
 
     def derive_chart_metric_name(self, text: str) -> str:
         return text.lower()
 
     def get_chart_category(self, index_value: str) -> str:
-        return index_value
+        return self._categories[index_value]
 
     def get_chart_value(
         self, index_value: str, metric_name: str
     ) -> Optional[Union[int, float]]:
-        return self._chart_params["series"][metric_name].get(index_value)
+        return self._series[metric_name].get(index_value)

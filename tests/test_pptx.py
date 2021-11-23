@@ -44,7 +44,7 @@ def dummy_spec():
         pictures={"item_image": "item.image_url|fetch"},
         tables={
             "*": {
-                "stubs": "stats.views|keys",
+                "stubs": "stats.views|keys|selfie|format_date",
                 "columns": {
                     "views": "stats.views|format_number",
                     "conversions": "stats.conversions|format_number",
@@ -53,7 +53,7 @@ def dummy_spec():
         },
         charts={
             "*": {
-                "categories": "stats.views|keys",
+                "categories": "stats.views|keys|selfie",
                 "series": {"views": "stats.views", "conversions": "stats.conversions"},
             }
         },
@@ -120,7 +120,11 @@ def test_apply_spec(dummy_spec: PPTXSpec, dummy_data, dummy_b64_image):
         "pictures": {"item_image": base64.b64decode(dummy_b64_image)},
         "tables": {
             "*": {
-                "stubs": ["2021-11-01", "2021-11-02", "2021-11-03"],
+                "stubs": {
+                    "2021-11-01": "Nov 1, 2021",
+                    "2021-11-02": "Nov 2, 2021",
+                    "2021-11-03": "Nov 3, 2021",
+                },
                 "columns": {
                     "views": {
                         "2021-11-01": "1,200",
@@ -133,7 +137,11 @@ def test_apply_spec(dummy_spec: PPTXSpec, dummy_data, dummy_b64_image):
         },
         "charts": {
             "*": {
-                "categories": ["2021-11-01", "2021-11-02", "2021-11-03"],
+                "categories": {
+                    "2021-11-01": "2021-11-01",
+                    "2021-11-02": "2021-11-02",
+                    "2021-11-03": "2021-11-03",
+                },
                 "series": {
                     "views": {
                         "2021-11-01": 1200,
@@ -166,8 +174,8 @@ def test_fill(dummy_spec: PPTXSpec, dummy_data, dummy_template: PPTXTemplate):
     table_slide = prs.slides[2]
     table_shape = table_slide.shapes[1]
     assert table_shape.name == "stats_table"
-    assert table_shape.table.cell(1, 0).text == "2021-11-01"
-    assert table_shape.table.cell(2, 0).text == "2021-11-03"
+    assert table_shape.table.cell(1, 0).text == "Nov 1, 2021"
+    assert table_shape.table.cell(2, 0).text == "Nov 3, 2021"
     assert table_shape.table.cell(1, 1).text == format_number_filter(
         dummy_data["stats"]["views"]["2021-11-01"], locale="en_US"
     )
