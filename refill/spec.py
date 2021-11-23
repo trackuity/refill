@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import functools
 import inspect
 import json
@@ -8,8 +9,17 @@ from dataclasses import asdict, is_dataclass
 from itertools import islice
 from typing import IO, Any, Callable, Dict, List, Type, Union, get_type_hints
 
+from babel.dates import format_date
 from babel.numbers import format_currency, format_decimal, format_percent
-from pyparsing import Group, Optional, Word, alphanums, alphas, delimitedList
+from pyparsing import (
+    Group,
+    Optional,
+    QuotedString,
+    Word,
+    alphanums,
+    alphas,
+    delimitedList,
+)
 from typing_extensions import get_args, get_origin
 
 
@@ -27,9 +37,10 @@ field_token = Word(alphas + "_", alphanums + "_").setResultsName(
 selection_token = Group(field_token + ("." + field_token)[0, ...]).setResultsName(  # type: ignore
     "selections", listAllMatches=True
 )
+argument_token = Word(alphanums) | QuotedString("'", escQuote="''")
 filter_token = "|" + Group(
     Word(alphas + "_", alphanums + "_").setResultsName("name")
-    + Optional("(" + Optional(delimitedList(Word(alphanums)), [])("arguments") + ")")  # type: ignore
+    + Optional("(" + Optional(delimitedList(argument_token), [])("arguments") + ")")  # type: ignore
 ).setResultsName("filters", listAllMatches=True)
 selector_parser = delimitedList(selection_token, delim="+") + filter_token[0, ...]  # type: ignore
 
@@ -91,6 +102,7 @@ def select_data(
                 "format_number": format_number_filter,
                 "format_currency": format_currency_filter,
                 "format_percent": format_percent_filter,
+                "format_date": format_date_filter,
                 "fetch": fetch_filter,
             }[filter_.name]
             parameters = inspect.signature(func).parameters
@@ -260,6 +272,22 @@ def format_percent_filter(x, *, locale: str):
         return {k: format_percent_filter(v, locale=locale) for (k, v) in x.items()}
     else:
         raise ValueError("format_percent filter cannot be applied to given value")
+
+
+def format_date_filter(x, format: str = "medium", *, locale: str):
+    if isinstance(x, datetime.date) or isinstance(x, datetime.datetime):
+        return format_date(x, format, locale=locale)
+    elif isinstance(x, str):
+        if 4 <= len(x) < 10:
+            missing_count = 10 - len(x)
+            x = x + "01-01"[-missing_count:]  # support YYYY and YYYY-MM too
+        return format_date(datetime.datetime.fromisoformat(x), format, locale=locale)
+    elif isinstance(x, list):
+        return [format_date_filter(i, format, locale=locale) for i in x]
+    elif isinstance(x, dict):
+        return {k: format_date_filter(v, format, locale=locale) for (k, v) in x.items()}
+    else:
+        raise ValueError("format_date filter cannot be applied to given value")
 
 
 def fetch_filter(x, *, urlopen: Callable[[str], IO[bytes]]):
