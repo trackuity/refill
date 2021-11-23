@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 
-install_requires = ["pyparsing", "typing_extensions", "babel"]
+install_requires = ["pyparsing", "typing_extensions", "babel", "dataclass_utils"]
 extras_require = {
     "pptx": ["python-pptx"],
 }

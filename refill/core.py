@@ -6,6 +6,9 @@ from dataclasses import dataclass
 from io import BytesIO
 from typing import IO, Any, Callable, Dict, Generic, Type, TypeVar, Union
 
+import dataclass_utils
+import dataclass_utils.error
+
 from .spec import Spec
 
 
@@ -56,6 +59,10 @@ class Filler(ABC, Generic[SpecType, ParamsType, TemplateType]):
         self._params = self.params_cls(
             **spec.apply(data, locale=locale, urlopen=urlopen)
         )
+        try:
+            dataclass_utils.check_type(self._params)
+        except dataclass_utils.error.Error as e:
+            raise ValueError(str(e))
 
     def fill(self, template: TemplateType) -> bytes:
         return template.render(self._params)

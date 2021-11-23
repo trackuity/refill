@@ -6,6 +6,8 @@
 #
 babel==2.9.1
     # via refill (setup.py)
+dataclass-utils==0.7.19
+    # via refill (setup.py)
 lxml==4.6.4
     # via python-pptx
 pillow==8.4.0
@@ -17,6 +19,8 @@ python-pptx==0.6.21
 pytz==2021.3
     # via babel
 typing-extensions==3.10.0.2
-    # via refill (setup.py)
+    # via
+    #   dataclass-utils
+    #   refill (setup.py)
 xlsxwriter==3.0.2
     # via python-pptx
