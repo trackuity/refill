@@ -82,6 +82,7 @@ def select_data(
                 "upper": upper_filter,
                 "str": str_filter,
                 "int": int_filter,
+                "selfie": selfie_filter,
                 "first": first_filter,
                 "last": last_filter,
                 "head": head_filter,
@@ -176,6 +177,15 @@ def str_filter(x, encoding: str = None):
 
 def int_filter(x):
     return int(x)
+
+
+def selfie_filter(x):
+    if isinstance(x, str) or isinstance(x, int) or isinstance(x, float):
+        return {x: x}
+    elif isinstance(x, list):
+        return dict(zip(x, x))
+    else:
+        raise ValueError("selfie filter cannot be applied to given value")
 
 
 def first_filter(x):
