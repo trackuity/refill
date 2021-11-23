@@ -111,7 +111,7 @@ class WrongDummyTarget(TypedDict):
             {
                 "variables": {
                     "item_id": "item.id",
-                    "iid": "=item_id",
+                    "iid": "=item_id|lower",
                     "item_name?": "item.name",
                     "ignore_me?": "doesnotexist",
                     "ignore_me_too?": "=doesnotexist",
@@ -126,7 +126,7 @@ class WrongDummyTarget(TypedDict):
             {
                 "variables": {
                     "item_id": "AB12345",
-                    "iid": "AB12345",
+                    "iid": "ab12345",
                     "item_name": "test item",
                 },
                 "charts": {

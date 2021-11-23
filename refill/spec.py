@@ -31,18 +31,22 @@ JSONArray = List[JSONValue]
 JSONObject = Dict[str, JSONValue]
 
 
+lookup_token = "=" + Word(alphas + "_", alphanums + "_").setResultsName("lookup")
+
 field_token = Word(alphas + "_", alphanums + "_").setResultsName(
     "fields", listAllMatches=True
 )
 selection_token = Group(field_token + ("." + field_token)[0, ...]).setResultsName(  # type: ignore
     "selections", listAllMatches=True
 )
+
 argument_token = Word(alphanums) | QuotedString("'", escQuote="''")
 filter_token = "|" + Group(
     Word(alphas + "_", alphanums + "_").setResultsName("name")
     + Optional("(" + Optional(delimitedList(argument_token), [])("arguments") + ")")  # type: ignore
 ).setResultsName("filters", listAllMatches=True)
-selector_parser = delimitedList(selection_token, delim="+") + filter_token[0, ...]  # type: ignore
+
+selector_parser = (lookup_token | delimitedList(selection_token, delim="+")) + filter_token[0, ...]  # type: ignore
 
 
 def parse_selector(selector: Selector):
@@ -53,6 +57,7 @@ def select_data(
     data: Dict[str, Any],
     selector: Selector,
     *,
+    lookup_table: dict[str, Any] = None,
     locale: str = "en_US",
     urlopen: Callable[[str], IO[bytes]] = urllib.request.urlopen,
 ):
@@ -60,27 +65,32 @@ def select_data(
 
     parsed = parse_selector(selector)
 
-    selecteds = []
-    for selection in parsed.selections:
-        selected = data
-        for field in selection.fields:
-            if isinstance(selected, list):
-                selected = [item[field] for item in selected]
-            elif isinstance(selected, dict):
-                selected = selected[field]
+    if parsed.lookup:
+        if lookup_table is None:
+            raise ValueError("lookup table required but not provided")
+        selected = lookup_table[parsed.lookup]
+    else:
+        selecteds = []
+        for selection in parsed.selections:
+            selected = data
+            for field in selection.fields:
+                if isinstance(selected, list):
+                    selected = [item[field] for item in selected]
+                elif isinstance(selected, dict):
+                    selected = selected[field]
+                else:
+                    raise ValueError(f"unexpected type in given data: {type(selected)}")
+            selecteds.append(selected)
+
+        def combine(x, y):
+            if isinstance(x, list) and isinstance(y, list):
+                return x + y
+            elif isinstance(x, dict) and isinstance(y, dict):
+                return {**x, **y}
             else:
-                raise ValueError(f"unexpected type in given data: {type(selected)}")
-        selecteds.append(selected)
+                raise ValueError(f"cannot combine {x} and {y}")
 
-    def combine(x, y):
-        if isinstance(x, list) and isinstance(y, list):
-            return x + y
-        elif isinstance(x, dict) and isinstance(y, dict):
-            return {**x, **y}
-        else:
-            raise ValueError(f"cannot combine {x} and {y}")
-
-    selected = functools.reduce(combine, selecteds)
+        selected = functools.reduce(combine, selecteds)
 
     for filter_ in parsed.filters:
         try:
@@ -314,12 +324,9 @@ def apply_spec(
                 key = key[:-1]
                 ignore_key_errors = True
             try:
-                if value.startswith("="):
-                    result[key] = result[value[1:]]
-                else:
-                    result[key] = select_data(
-                        data, value, locale=locale, urlopen=urlopen
-                    )
+                result[key] = select_data(
+                    data, value, lookup_table=result, locale=locale, urlopen=urlopen
+                )
             except KeyError:
                 if not ignore_key_errors:
                     raise
