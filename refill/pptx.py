@@ -18,11 +18,13 @@ from .spec import Selector, Spec
 
 
 class PPTXTableSpecDict(TypedDict):
+    keys: Selector
     stubs: Selector
     columns: Dict[str, Selector]
 
 
 class PPTXChartSpecDict(TypedDict):
+    keys: Selector
     categories: Selector
     series: Dict[str, Selector]
 
@@ -36,11 +38,13 @@ class PPTXSpec(Spec):
 
 
 class PPTXTableParamsDict(TypedDict):
+    keys: List[str]
     stubs: Dict[str, str]
     columns: Dict[str, Dict[str, str]]
 
 
 class PPTXChartParamsDict(TypedDict):
+    keys: List[str]
     categories: Dict[str, str]
     series: Dict[str, Dict[str, Union[int, float]]]
 
@@ -156,7 +160,7 @@ class TableShapeSubstituter(ShapeSubstituter):
     ) -> None:
         super().__init__()
         self._table_name_pattern = table_name_pattern
-        self._keys = list(table_params["stubs"].keys())
+        self._keys = table_params["keys"]
         self._stubs = table_params["stubs"]
         self._columns = table_params["columns"]
 
@@ -198,10 +202,10 @@ class TableShapeSubstituter(ShapeSubstituter):
 
     def derive_table_row_index_value(self, text: str, row_number: int) -> str:
         if text.startswith("$"):
-            stub_index = int(re.sub(r"\$[a-zA-Z_]*", "", text)) - 1
+            key_index = int(re.sub(r"\$[a-zA-Z_]*", "", text)) - 1
         else:
-            stub_index = row_number
-        return self._keys[stub_index]
+            key_index = row_number
+        return self._keys[key_index]
 
     def derive_table_column_index_value(
         self, text: str, column_number: int
@@ -227,7 +231,7 @@ class ChartShapeSubstituter(ShapeSubstituter):
     ) -> None:
         super().__init__()
         self._chart_name_pattern = chart_name_pattern
-        self._keys = list(chart_params["categories"].keys())
+        self._keys = chart_params["keys"]
         self._categories = chart_params["categories"]
         self._series = chart_params["series"]
 

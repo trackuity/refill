@@ -44,7 +44,8 @@ def dummy_spec():
         pictures={"item_image": "item.image_url|fetch"},
         tables={
             "*": {
-                "stubs": "stats.views|keys|selfie|format_date",
+                "keys": "stats.views|keys",
+                "stubs": "=keys|selfie|format_date",
                 "columns": {
                     "views": "stats.views|format_number",
                     "conversions": "stats.conversions|format_number",
@@ -53,7 +54,8 @@ def dummy_spec():
         },
         charts={
             "*": {
-                "categories": "stats.views|keys|selfie",
+                "keys": "stats.views|keys",
+                "categories": "=keys|selfie",
                 "series": {"views": "stats.views", "conversions": "stats.conversions"},
             }
         },
@@ -120,6 +122,7 @@ def test_apply_spec(dummy_spec: PPTXSpec, dummy_data, dummy_b64_image):
         "pictures": {"item_image": base64.b64decode(dummy_b64_image)},
         "tables": {
             "*": {
+                "keys": ["2021-11-01", "2021-11-02", "2021-11-03"],
                 "stubs": {
                     "2021-11-01": "Nov 1, 2021",
                     "2021-11-02": "Nov 2, 2021",
@@ -137,6 +140,7 @@ def test_apply_spec(dummy_spec: PPTXSpec, dummy_data, dummy_b64_image):
         },
         "charts": {
             "*": {
+                "keys": ["2021-11-01", "2021-11-02", "2021-11-03"],
                 "categories": {
                     "2021-11-01": "2021-11-01",
                     "2021-11-02": "2021-11-02",
