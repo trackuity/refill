@@ -5,6 +5,7 @@ import functools
 import inspect
 import json
 import urllib.request
+from collections import defaultdict
 from dataclasses import asdict, is_dataclass
 from itertools import islice
 from typing import IO, Any, Callable, Dict, List, Type, Union, get_type_hints
@@ -46,9 +47,9 @@ filter_token = "|" + Group(
     + Optional("(" + Optional(delimitedList(argument_token), [])("arguments") + ")")  # type: ignore
 ).setResultsName("filters", listAllMatches=True)
 
-sum_token = delimitedList(selection_token, delim="+")
-filtered_token = lookup_token | selection_token | ("(" + sum_token + ")")  # type: ignore
-unfiltered_token = lookup_token | sum_token
+combine_token = delimitedList(selection_token, delim=",")
+filtered_token = lookup_token | selection_token | ("(" + combine_token + ")")  # type: ignore
+unfiltered_token = lookup_token | combine_token
 selector_parser = (filtered_token + filter_token[1, ...]) | unfiltered_token  # type: ignore
 
 
@@ -85,19 +86,21 @@ def select_data(
                     raise ValueError(f"unexpected type in given data: {type(selected)}")
             selecteds.append(selected)
 
-        def add(x, y):
-            if isinstance(x, dict) and isinstance(y, dict):
-                result = dict(x)
-                for k, v in y.items():
-                    if k in result:
-                        result[k] += v
-                    else:
-                        result[k] = v
-                return result
-            else:
-                return x + y
+        def combine_into_dict(x, y):
+            for k, v in y.items():
+                x[k].append(v)
+            return x
 
-        selected = functools.reduce(add, selecteds)
+        def combine_into_list(x, y):
+            x.append(y)
+            return x
+
+        if len(selecteds) == 1:
+            selected = selecteds[0]
+        elif all(isinstance(s, dict) for s in selecteds):
+            selected = functools.reduce(combine_into_dict, selecteds, defaultdict(list))
+        else:
+            selected = functools.reduce(combine_into_list, selecteds, [])
 
     for filter_ in parsed.filters:
         try:
@@ -186,7 +189,9 @@ def lower_filter(x):
     if isinstance(x, str):
         return x.lower()
     elif isinstance(x, list):
-        return list(s.lower() for s in x)
+        return list(lower_filter(i) for i in x)
+    elif isinstance(x, dict):
+        return {k: lower_filter(v) for (k, v) in x.items()}
     else:
         raise ValueError("lower filter cannot be applied to given value")
 
@@ -195,7 +200,9 @@ def upper_filter(x):
     if isinstance(x, str):
         return x.upper()
     elif isinstance(x, list):
-        return list(s.upper() for s in x)
+        return list(upper_filter(i) for i in x)
+    elif isinstance(x, dict):
+        return {k: upper_filter(v) for (k, v) in x.items()}
     else:
         raise ValueError("upper filter cannot be applied to given value")
 
@@ -253,7 +260,7 @@ def sum_filter(x):
     if isinstance(x, list):
         return sum(x)
     elif isinstance(x, dict):
-        return sum(x.values())
+        return {k: sum_filter(v) for (k, v) in x.items()}
     else:
         raise ValueError("sum filter cannot be applied to given value")
 
