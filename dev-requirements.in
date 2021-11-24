@@ -3,3 +3,5 @@ black
 isort
 pytest
 pre-commit
+wheel
+twine
