@@ -46,11 +46,14 @@ filter_token = "|" + Group(
     + Optional("(" + Optional(delimitedList(argument_token), [])("arguments") + ")")  # type: ignore
 ).setResultsName("filters", listAllMatches=True)
 
-selector_parser = (lookup_token | delimitedList(selection_token, delim="+")) + filter_token[0, ...]  # type: ignore
+sum_token = delimitedList(selection_token, delim="+")
+filtered_token = lookup_token | selection_token | ("(" + sum_token + ")")  # type: ignore
+unfiltered_token = lookup_token | sum_token
+selector_parser = (filtered_token + filter_token[1, ...]) | unfiltered_token  # type: ignore
 
 
 def parse_selector(selector: Selector):
-    return selector_parser.parseString(selector)
+    return selector_parser.parseString(selector, parseAll=True)
 
 
 def select_data(
@@ -82,15 +85,19 @@ def select_data(
                     raise ValueError(f"unexpected type in given data: {type(selected)}")
             selecteds.append(selected)
 
-        def combine(x, y):
-            if isinstance(x, list) and isinstance(y, list):
-                return x + y
-            elif isinstance(x, dict) and isinstance(y, dict):
-                return {**x, **y}
+        def add(x, y):
+            if isinstance(x, dict) and isinstance(y, dict):
+                result = dict(x)
+                for k, v in y.items():
+                    if k in result:
+                        result[k] += v
+                    else:
+                        result[k] = v
+                return result
             else:
-                raise ValueError(f"cannot combine {x} and {y}")
+                return x + y
 
-        selected = functools.reduce(combine, selecteds)
+        selected = functools.reduce(add, selecteds)
 
     for filter_ in parsed.filters:
         try:
@@ -130,10 +137,10 @@ def select_data(
                 kwargs["urlopen"] = urlopen
             selected = func(selected, *args, **kwargs)
         except KeyError:
-            raise ValueError(f"filter '{filter_}' does not exist")
+            raise ValueError(f"filter '{filter_.name}' does not exist")
         except TypeError:
             raise ValueError(
-                f"invalid arguments for filter '{filter_}': {filter_.arguments}"
+                f"invalid arguments for filter '{filter_.name}': {filter_.arguments}"
             )
 
     return selected

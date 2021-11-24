@@ -58,7 +58,8 @@ from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
         ("person.data_urls|first|fetch|str(UTF8)", '"testdata"'),
         ("person.data_urls|first|fetch|str('utf-8')", '"testdata"'),
         ("numbers+numbers", [1, 2, 4, 1, 2, 4]),
-        ("stats.views+stats.conversions|head", {"2021-11-02": 3}),
+        ("(stats.views+stats.conversions)|head", {"2021-11-02": 15}),
+        ("(stats.views+stats.conversions)|head(2)|tail", {"2021-11-01": 10}),
     ],
 )
 def test_select_data(selector, expected):
