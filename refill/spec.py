@@ -287,13 +287,15 @@ def format_currency_filter(x, currency: str = "USD", *, locale: str):
         raise ValueError("format_currency filter cannot be applied to given value")
 
 
-def format_percent_filter(x, *, locale: str):
+def format_percent_filter(x, format: str = None, *, locale: str):
     if isinstance(x, int) or isinstance(x, float):
-        return format_percent(x, locale=locale)
+        return format_percent(x, format, locale=locale)
     elif isinstance(x, list):
-        return [format_percent_filter(i, locale=locale) for i in x]
+        return [format_percent_filter(i, format, locale=locale) for i in x]
     elif isinstance(x, dict):
-        return {k: format_percent_filter(v, locale=locale) for (k, v) in x.items()}
+        return {
+            k: format_percent_filter(v, format, locale=locale) for (k, v) in x.items()
+        }
     else:
         raise ValueError("format_percent filter cannot be applied to given value")
 

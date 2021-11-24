@@ -51,6 +51,7 @@ from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
         ("person.weight_in_grams|format_currency(EUR)", "€75,148.00"),
         ("person.weight_in_grams|format_currency('EUR')", "€75,148.00"),
         ("conversion_rate|format_percent", "25%"),
+        ("conversion_rate|format_percent('# %')", "25 %"),
         ("stats.views|keys|first|format_date('MMM d, ''''yy')", "Nov 2, '21"),
         ("stats.views|keys|head(1)|format_date", ["Nov 2, 2021"]),
         ("creation_month|selfie|format_date('MMM YYYY')", {"2021-11": "Nov 2021"}),
