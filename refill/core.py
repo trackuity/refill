@@ -56,16 +56,16 @@ class Filler(ABC, Generic[SpecType, ParamsType, TemplateType]):
         localns=None,
     ) -> None:
         self.params_cls.validate_spec(spec, globalns, localns)
-        self._params = self.params_cls(
+        self.params = self.params_cls(
             **spec.apply(data, locale=locale, urlopen=urlopen)
         )
         try:
-            dataclass_utils.check_type(self._params)
+            dataclass_utils.check_type(self.params)
         except dataclass_utils.error.Error as e:
             raise ValueError(str(e))
 
     def fill(self, template: TemplateType) -> bytes:
-        return template.render(self._params)
+        return template.render(self.params)
 
     def fill_to_file(self, template: TemplateType, file_object: IO[bytes]) -> None:
-        return template.render_to_file(self._params, file_object)
+        return template.render_to_file(self.params, file_object)
