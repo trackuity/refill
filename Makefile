@@ -1,9 +1,9 @@
 PYTHON=python3.7
 EXTRAS=all
 
-.PHONY: all sync publish clean
+.PHONY: all sync check publish clean
 
-all: venv requirements.txt dev-requirements.txt sync .git/hooks/pre-commit .git/hooks/pre-push
+all: venv sync check
 
 venv:
 	$(PYTHON) -m venv venv
@@ -20,10 +20,12 @@ sync: requirements.txt dev-requirements.txt
 
 .git/hooks/pre-commit: dev-requirements.txt .pre-commit-config.yaml
 	venv/bin/pre-commit install -t pre-commit
-	venv/bin/pre-commit run --all-files --hook-stage commit
 
 .git/hooks/pre-push: dev-requirements.txt .pre-commit-config.yaml
 	venv/bin/pre-commit install -t pre-push
+
+check: .git/hooks/pre-commit .git/hooks/pre-push
+	venv/bin/pre-commit run --all-files --hook-stage commit
 	venv/bin/pre-commit run --all-files --hook-stage push
 
 dist: sync
