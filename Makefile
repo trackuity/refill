@@ -27,6 +27,7 @@ sync: requirements.txt dev-requirements.txt
 	venv/bin/pre-commit run --all-files --hook-stage push
 
 dist: sync
+	rm -rf dist build
 	venv/bin/python setup.py sdist bdist_wheel
 
 publish: dist
