@@ -1,4 +1,3 @@
-default_stages: [commit, push]
 repos:
   - repo: local
     hooks:
@@ -7,13 +6,15 @@ repos:
       entry: venv/bin/black
       language: script
       exclude: ^(venv/|docs/)
-      types: ['python']
+      types: [python]
+      stages: [commit]
     - id: isort
       name: isort
       entry: venv/bin/isort
       language: script
       exclude: ^(venv/|docs/)
-      types: ['python']
+      types: [python]
+      stages: [commit]
     - id: pytest
       name: pytest
       entry: venv/bin/pytest
