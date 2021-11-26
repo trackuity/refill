@@ -19,7 +19,7 @@ from pyparsing import (
     Word,
     alphanums,
     alphas,
-    delimitedList,
+    delimited_list,
 )
 from typing_extensions import get_args, get_origin
 
@@ -32,29 +32,29 @@ JSONArray = List[JSONValue]
 JSONObject = Dict[str, JSONValue]
 
 
-lookup_token = "=" + Word(alphas + "_", alphanums + "_").setResultsName("lookup")
+lookup_token = "=" + Word(alphas + "_", alphanums + "_").set_results_name("lookup")
 
-field_token = Word(alphas + "_", alphanums + "_").setResultsName(
-    "fields", listAllMatches=True
+field_token = Word(alphas + "_", alphanums + "_").set_results_name(
+    "fields", list_all_matches=True
 )
-selection_token = Group(field_token + ("." + field_token)[0, ...]).setResultsName(  # type: ignore
-    "selections", listAllMatches=True
+selection_token = Group(field_token + ("." + field_token)[0, ...]).set_results_name(
+    "selections", list_all_matches=True
 )
 
-argument_token = Word(alphanums) | QuotedString("'", escQuote="''")
+argument_token = Word(alphanums) | QuotedString("'", esc_quote="''")
 filter_token = "|" + Group(
-    Word(alphas + "_", alphanums + "_").setResultsName("name")
-    + Optional("(" + Optional(delimitedList(argument_token), [])("arguments") + ")")  # type: ignore
-).setResultsName("filters", listAllMatches=True)
+    Word(alphas + "_", alphanums + "_").set_results_name("name")
+    + Optional("(" + Optional(delimited_list(argument_token), [])("arguments") + ")")
+).set_results_name("filters", list_all_matches=True)
 
-combine_token = delimitedList(selection_token, delim=",")
-filtered_token = lookup_token | selection_token | ("(" + combine_token + ")")  # type: ignore
+combine_token = delimited_list(selection_token, delim=",")
+filtered_token = lookup_token | selection_token | ("(" + combine_token + ")")
 unfiltered_token = lookup_token | combine_token
-selector_parser = (filtered_token + filter_token[1, ...]) | unfiltered_token  # type: ignore
+selector_parser = (filtered_token + filter_token[1, ...]) | unfiltered_token
 
 
 def parse_selector(selector: Selector):
-    return selector_parser.parseString(selector, parseAll=True)
+    return selector_parser.parse_string(selector, parse_all=True)
 
 
 def select_data(

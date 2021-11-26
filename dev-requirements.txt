@@ -52,7 +52,7 @@ mypy-extensions==0.4.3
     # via black
 nodeenv==1.6.0
     # via pre-commit
-packaging==21.2
+packaging==21.3
     # via
     #   bleach
     #   pytest
@@ -72,7 +72,7 @@ py==1.11.0
     # via pytest
 pygments==2.10.0
     # via readme-renderer
-pyparsing==2.4.7
+pyparsing==3.0.6
     # via
     #   -c requirements.txt
     #   packaging

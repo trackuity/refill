@@ -12,7 +12,7 @@ lxml==4.6.4
     # via python-pptx
 pillow==8.4.0
     # via python-pptx
-pyparsing==2.4.7
+pyparsing==3.0.6
     # via refill (setup.py)
 python-pptx==0.6.21
     # via refill (setup.py)
