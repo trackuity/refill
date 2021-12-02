@@ -54,7 +54,7 @@ from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
         ("conversion_rate|format_percent('# %')", "25 %"),
         ("stats.views|keys|first|format_date('MMM d, ''''yy')", "Nov 2, '21"),
         ("stats.views|keys|head(1)|format_date", ["Nov 2, 2021"]),
-        ("creation_month|selfie|format_date('MMM YYYY')", {"2021-11": "Nov 2021"}),
+        ("creation_year|selfie|format_date('MMM yyyy')", {"2021": "Jan 2021"}),
         ("stats.views|head(1)|format_number", {"2021-11-02": "12"}),
         ("stats.views|head(1)|format_currency", {"2021-11-02": "$12.00"}),
         ("person.data_urls|first|fetch", b'"testdata"'),
@@ -72,7 +72,7 @@ def test_select_data(selector, expected):
         "numbers": [1, 2, 4],
         "languages": [{"iso": "EN"}, {"iso": "NL"}, {"iso": "FR"}],
         "conversion_rate": 0.253,
-        "creation_month": "2021-11",
+        "creation_year": "2021",
         "stats": {
             "views": {"2021-11-02": 12, "2021-11-01": 10, "2021-11-03": 14},
             "conversions": {"2021-11-02": 3},

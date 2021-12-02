@@ -306,7 +306,7 @@ def format_date_filter(x, format: str = "medium", *, locale: str):
     elif isinstance(x, str):
         if 4 <= len(x) < 10:
             missing_count = 10 - len(x)
-            x = x + "01-01"[-missing_count:]  # support YYYY and YYYY-MM too
+            x = x + "-01-01"[-missing_count:]  # support YYYY and YYYY-MM too
         return format_date(datetime.datetime.fromisoformat(x), format, locale=locale)
     elif isinstance(x, list):
         return [format_date_filter(i, format, locale=locale) for i in x]
