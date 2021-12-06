@@ -9,6 +9,7 @@ from typing import IO, Any, Callable, Dict, Generic, Type, TypeVar, Union
 import dataclass_utils
 import dataclass_utils.error
 
+from .filters import Filters, default_filters
 from .spec import Spec
 
 
@@ -50,6 +51,7 @@ class Filler(ABC, Generic[SpecType, ParamsType, TemplateType]):
         spec: SpecType,
         data: Dict[str, Any],
         *,
+        filters: Filters = default_filters,
         locale: str = "en_US",
         urlopen: Callable[[str], IO[bytes]] = urllib.request.urlopen,
         globalns=None,
@@ -57,7 +59,7 @@ class Filler(ABC, Generic[SpecType, ParamsType, TemplateType]):
     ) -> None:
         self.params_cls.validate_spec(spec, globalns, localns)
         self.params = self.params_cls(
-            **spec.apply(data, locale=locale, urlopen=urlopen)
+            **spec.apply(data, filters=filters, locale=locale, urlopen=urlopen)
         )
         try:
             dataclass_utils.check_type(self.params)

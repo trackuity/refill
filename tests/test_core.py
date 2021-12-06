@@ -7,7 +7,8 @@ import pytest
 from typing_extensions import TypedDict
 
 from refill.core import Filler, Params, Template
-from refill.spec import Selector, Spec, format_currency_filter
+from refill.filters import default_filters, format_currency_filter, upper_filter
+from refill.spec import Selector, Spec
 
 
 class DummyChartSpecDict(TypedDict):
@@ -44,7 +45,10 @@ class DummyFiller(Filler[DummySpec, DummyParams, DummyTemplate]):
 @pytest.fixture
 def dummy_spec():
     return DummySpec(
-        variables={"item_id": "item.id", "item_price": "item.price|format_currency"},
+        variables={
+            "item_id": "item.id|uppercase",
+            "item_price": "item.price|format_currency",
+        },
         charts={
             "views_chart": {
                 "categories": "stats.views|keys",
@@ -57,7 +61,7 @@ def dummy_spec():
 @pytest.fixture
 def dummy_data():
     return {
-        "item": {"id": "12345", "price": 84.95},
+        "item": {"id": "abc12345", "price": 84.95},
         "stats": {"views": {"monday": 22, "tuesday": 33}},
     }
 
@@ -66,7 +70,7 @@ def dummy_data():
 def dummy_params(dummy_data):
     return DummyParams(
         variables={
-            "item_id": dummy_data["item"]["id"],
+            "item_id": upper_filter(dummy_data["item"]["id"]),
             "item_price": str(
                 format_currency_filter(dummy_data["item"]["price"], locale="nl_BE")
             ),
@@ -87,7 +91,9 @@ def dummy_template():
 
 @pytest.fixture
 def dummy_filler(dummy_spec: DummySpec, dummy_data):
-    return DummyFiller(dummy_spec, dummy_data, locale="nl_BE")
+    filters = default_filters.copy()
+    filters.register("uppercase", upper_filter)
+    return DummyFiller(dummy_spec, dummy_data, filters=filters, locale="nl_BE")
 
 
 def test_params(dummy_params: DummyParams, dummy_spec: DummySpec):

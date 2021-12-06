@@ -8,6 +8,7 @@ from typing import Dict, List, Union
 import pytest
 from typing_extensions import TypedDict
 
+from refill.filters import default_filters
 from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
 
 
@@ -90,6 +91,13 @@ def test_select_data(selector, expected):
         },
     }
     assert select_data(data, selector) == expected
+
+
+def test_select_data_with_custom_filters():
+    filters = default_filters.copy()
+    filters.register("test", lambda x: "test" + x)
+    assert select_data({"name": "jenny"}, "name|test", filters=filters) == "testjenny"
+    assert select_data({"name": "jenny"}, "name|upper", filters=filters) == "JENNY"
 
 
 class DummyChartTargetDict(TypedDict):
