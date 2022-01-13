@@ -8,7 +8,7 @@ extras_require = {
 
 setup(
     name="refill",
-    version="0.2",
+    version="0.3",
     description="Reimagined filling of document templates",
     license="Apache License, Version 2.0",
     url="https://github.com/trackuity/refill",
