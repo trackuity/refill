@@ -5,7 +5,7 @@ import inspect
 import re
 import urllib.request
 from copy import deepcopy
-from itertools import islice
+from itertools import accumulate, islice
 from typing import IO, Any, Callable, Dict, List
 
 from babel.dates import format_date
@@ -191,6 +191,16 @@ def sum_filter(x):
         return {k: sum_filter(v) for (k, v) in x.items()}
     else:
         raise ValueError("sum filter cannot be applied to given value")
+
+
+@default_filters
+def cumul_filter(x):
+    if isinstance(x, list):
+        return list(accumulate(x))
+    elif isinstance(x, dict):
+        return dict(zip(x.keys(), accumulate(x.values())))
+    else:
+        raise ValueError("cumul filter cannot be applied to given value")
 
 
 @default_filters
