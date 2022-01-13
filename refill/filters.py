@@ -85,6 +85,8 @@ def values_filter(x):
 def sort_filter(x):
     if isinstance(x, list):
         return sorted(x)
+    elif isinstance(x, dict):
+        return dict(sorted(x.items()))
     else:
         raise ValueError("sort filter cannot be applied to given value")
 

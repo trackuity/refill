@@ -19,6 +19,7 @@ from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
         ("languages.iso", ["EN", "NL", "FR"]),
         ("stats.views|keys", ["2021-11-02", "2021-11-01", "2021-11-03"]),
         ("stats.views|keys|sort", ["2021-11-01", "2021-11-02", "2021-11-03"]),
+        ("stats.views|sort|keys", ["2021-11-01", "2021-11-02", "2021-11-03"]),
         ("stats.views|keys|keys", [0, 1, 2]),
         ("stats.views|values", [12, 10, 14]),
         ("numbers|values", [1, 2, 4]),
