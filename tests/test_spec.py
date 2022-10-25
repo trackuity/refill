@@ -74,6 +74,8 @@ from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
         ("numbers|first + numbers|last", 5),
         ("(numbers|first) + (numbers|last)", 5),
         ("numbers|first / numbers|last", 0.25),
+        ("(numbers|first / numbers|last)|format_percent", "25%"),
+        ("(numbers|first / numbers|last)|selfie|values|first|format_percent", "25%"),
         ("(numbers|first + numbers|last) / numbers|last", 1.25),
         ("numbers|first + numbers|last * numbers|last", 17),
         ("stats.views|values|head(1)|last + stats.views|values|head(2)|last", 22),

@@ -74,12 +74,15 @@ class SelectorParser:
         operand_token = (filtered_token + filter_token[1, ...]) | unfiltered_token
         operand_token.set_parse_action(self._parse_operand)
 
-        self._parser = infix_notation(
-            operand_token,
-            [
-                (one_of("* /"), 2, OpAssoc.LEFT, self._parse_expression),
-                (one_of("+ -"), 2, OpAssoc.LEFT, self._parse_expression),
-            ],
+        self._parser = (
+            infix_notation(
+                operand_token,
+                [
+                    (one_of("* /"), 2, OpAssoc.LEFT, self._parse_expression),
+                    (one_of("+ -"), 2, OpAssoc.LEFT, self._parse_expression),
+                ],
+            )
+            + filter_token[0, ...]
         )
 
     def _parse_operand(self, string, locs, parsed):
@@ -147,7 +150,19 @@ class SelectorParser:
         return [result]
 
     def parse(self, selector: Selector):
-        return self._parser.parse_string(selector, parse_all=True)[0]
+        parsed = self._parser.parse_string(selector, parse_all=True)
+        result = parsed[0]
+
+        for parsed_filter in parsed.filters:
+            result = self.filters.apply(
+                result,
+                parsed_filter.name,
+                parsed_filter.arguments,
+                locale=self.locale,
+                urlopen=self.urlopen,
+            )
+
+        return result
 
 
 def select_data(
