@@ -69,6 +69,14 @@ from refill.spec import Selector, Spec, apply_spec, select_data, validate_spec
         ("numbers,numbers", [[1, 2, 4], [1, 2, 4]]),
         ("(stats.views,stats.conversions)|sum|head", {"2021-11-02": 15}),
         ("(stats.views,stats.conversions)|sum|head(2)|tail", {"2021-11-01": 10}),
+        ("numbers+numbers", [1, 2, 4, 1, 2, 4]),
+        ("(numbers+numbers)", [1, 2, 4, 1, 2, 4]),
+        ("numbers|first + numbers|last", 5),
+        ("(numbers|first) + (numbers|last)", 5),
+        ("numbers|first / numbers|last", 0.25),
+        ("(numbers|first + numbers|last) / numbers|last", 1.25),
+        ("numbers|first + numbers|last * numbers|last", 17),
+        ("stats.views|values|head(1)|last + stats.views|values|head(2)|last", 22),
     ],
 )
 def test_select_data(selector, expected):
@@ -122,7 +130,12 @@ class WrongDummyTarget(TypedDict):
     [
         (
             {
-                "item": {"id": "AB12345", "name": "test item"},
+                "item": {
+                    "id": "AB12345",
+                    "name": "test item",
+                    "weight": 80,
+                    "height": 16,
+                },
                 "stats": {"views": {"2021-11-01": 1, "2021-11-02": 2, "2021-11-03": 3}},
             },
             {
@@ -132,6 +145,9 @@ class WrongDummyTarget(TypedDict):
                     "item_name?": "item.name",
                     "ignore_me?": "doesnotexist",
                     "ignore_me_too?": "=doesnotexist",
+                    "weight": "item.weight",
+                    "height": "item.height",
+                    "ratio": "=weight / =height",
                 },
                 "charts": {
                     "views_chart": {
@@ -145,6 +161,9 @@ class WrongDummyTarget(TypedDict):
                     "item_id": "AB12345",
                     "iid": "ab12345",
                     "item_name": "test item",
+                    "weight": 80,
+                    "height": 16,
+                    "ratio": 80 / 16,
                 },
                 "charts": {
                     "views_chart": {
