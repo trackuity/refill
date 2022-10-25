@@ -187,22 +187,29 @@ def apply_spec(
     locale: str = "en_US",
     urlopen: Callable[[str], IO[bytes]] = urllib.request.urlopen,
 ) -> Dict[str, Any]:
+    lookup_table: JSONObject = {}
     result: JSONObject = {}
     for key, value in spec.items():
         if isinstance(value, str):
+            add_to_result = True
+            if key.startswith("~"):
+                key = key[1:]
+                add_to_result = False
             ignore_key_errors = False
             if key.endswith("?"):
                 key = key[:-1]
                 ignore_key_errors = True
             try:
-                result[key] = select_data(
+                lookup_table[key] = select_data(
                     data,
                     value,
                     filters=filters,
-                    lookup_table=result,
+                    lookup_table=lookup_table,
                     locale=locale,
                     urlopen=urlopen,
                 )
+                if add_to_result:
+                    result[key] = lookup_table[key]
             except KeyError:
                 if not ignore_key_errors:
                     raise
