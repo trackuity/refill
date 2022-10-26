@@ -266,3 +266,19 @@ def fetch_filter(x, *, urlopen: Callable[[str], IO[bytes]]):
         return [urlopen(i).read() for i in x]
     else:
         raise ValueError("fetch filter cannot be applied to given value")
+
+
+@default_filters
+def clamp_filter(
+    x,
+    min_value: float = float("-inf"),
+    max_value: float = float("inf"),
+):
+    if isinstance(x, int) or isinstance(x, float):
+        return max(min_value, min(max_value, x))
+    elif isinstance(x, list):
+        return [clamp_filter(i, min_value, max_value) for i in x]
+    elif isinstance(x, dict):
+        return {k: clamp_filter(v, min_value, max_value) for (k, v) in x.items()}
+    else:
+        raise ValueError("clamp filter cannot be applied to given value")
